@@ -1,1 +1,0 @@
-# of-ping-cloud-base
