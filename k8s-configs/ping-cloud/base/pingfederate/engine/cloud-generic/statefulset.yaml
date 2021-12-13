@@ -174,7 +174,7 @@ spec:
         volumeMounts:
         # FIXME: fix home directory when containers run as non-root user
         - name: ssh-dir
-          mountPath: /root/.ssh
+          mountPath: /ping/.ssh
         - name: shared-dir
           mountPath: /opt/shared-dir
         - name: topology-descriptor
