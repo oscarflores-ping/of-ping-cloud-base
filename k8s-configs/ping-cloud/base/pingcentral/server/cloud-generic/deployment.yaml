@@ -172,6 +172,8 @@ spec:
           - name: data-dir
             mountPath: /opt/staging/newrelic.jar
             subPath: newrelic.jar
+      securityContext:
+        fsGroup: 9999
       volumes:
         - name: ssh-dir
           emptyDir: {}
