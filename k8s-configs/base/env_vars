@@ -54,7 +54,7 @@ ORCH_API_SSM_PATH_PREFIX=/pcpt/orch-api
 # Cluster state repo details
 ############################################################
 # The known-hosts file to trust the cluster state repo server for git/ssh cloning
-KNOWN_HOSTS_CLUSTER_STATE_REPO="|1|+psRinFAbLFgErmmHfBcGMW6qgE=|RPGqMdml5ksbq2lxCad+90IhF7o= ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg="
+KNOWN_HOSTS_CLUSTER_STATE_REPO="|1|6H3rHRtrzhn7xuwBUT2U9YbgLpY=|k8RVNUUKsqWayo0tBtY1O/ETFpc= ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg="
 
 CLUSTER_STATE_REPO_URL=ssh://git@github.com/oscarflores-ping/of-cluster-state-repo
 CLUSTER_STATE_REPO_PATH=${REGION_NICK_NAME}
@@ -72,7 +72,7 @@ PING_CLOUD_NAMESPACE=ping-cloud
 
 # The ping-cloud-base git URL and branch for base Kubernetes manifests
 K8S_GIT_URL=ssh://git@github.com/oscarflores-ping/of-ping-cloud-base
-K8S_GIT_BRANCH=pdo-2968-spike
+K8S_GIT_BRANCH=pdo-3207-engines-use-non-root
 
 # The name of the Docker image registry
 ECR_REGISTRY_NAME=public.ecr.aws/r2h3l6e4
