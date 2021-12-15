@@ -97,9 +97,8 @@ spec:
       - name: pingcentral
         # Required because new GSA images run as non-root by default, and P1AS does not work with non-root user yet.
         securityContext:
-          runAsGroup: 9999
-          runAsNonRoot: true
-          runAsUser: 9031
+          runAsNonRoot: false
+          runAsUser: 0
         image: 705370621539.dkr.ecr.us-west-2.amazonaws.com/pingcloud-apps/pingcentral:1.8.0-v1.0.20-pdo-3207-engines-use-non-root
         imagePullPolicy: IfNotPresent
         resources:
@@ -148,7 +147,7 @@ spec:
         volumeMounts:
           # FIXME: fix home directory when containers run as non-root user
           - name: ssh-dir
-            mountPath: /home/ping/.ssh
+            mountPath: /root/.ssh
           - name: shared-dir
             mountPath: /opt/shared-dir
           - name: topology-descriptor
@@ -172,8 +171,6 @@ spec:
           - name: data-dir
             mountPath: /opt/staging/newrelic.jar
             subPath: newrelic.jar
-      securityContext:
-        fsGroup: 9999
       volumes:
         - name: ssh-dir
           emptyDir: {}
