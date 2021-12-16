@@ -121,8 +121,9 @@ spec:
         image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingaccess-was:6.3.1-v1.0.17
         # Required because new GSA images run as non-root by default, and P1AS does not work with non-root user yet.
         securityContext:
-          runAsNonRoot: false
-          runAsUser: 0
+          runAsGroup: 9999
+          runAsNonRoot: true
+          runAsUser: 9031
         imagePullPolicy: IfNotPresent
         resources:
           requests:
@@ -134,7 +135,7 @@ spec:
         volumeMounts:
         # FIXME: fix home directory when containers run as non-root user
         - name: ssh-dir
-          mountPath: /root/.ssh
+          mountPath: /home/ping/.ssh
         - name: shared-dir
           mountPath: /opt/shared-dir
         - name: topology-descriptor
@@ -192,6 +193,8 @@ spec:
         - secretRef:
             name: newrelic-license-key
             optional: true
+      securityContext:
+        fsGroup: 9999
       volumes:
       - name: ssh-dir
         emptyDir: {}
