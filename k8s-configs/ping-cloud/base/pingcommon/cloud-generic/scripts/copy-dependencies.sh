@@ -61,4 +61,10 @@ if test ! -f "${DST_FILE}"; then
 fi
 beluga_log "Execution completed successfully"
 
+echo "Oscar Tests"
+echo "dir /.ssh"
+ls -al /.ssh
+ehco "dir /home/ping/ssh"
+ls -al /home/ping/.ssh
+
 exit 0
