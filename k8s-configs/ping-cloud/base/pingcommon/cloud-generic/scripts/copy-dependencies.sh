@@ -6,9 +6,6 @@ beluga_log "Copying SSH configuration files"
 test -f /known_hosts && cp /known_hosts /.ssh
 test -f /id_rsa && cp /id_rsa /.ssh
 
-beluga_log "Updating id_rsa permissions"
-chmod 0400 /.ssh/id_rsa
-
 beluga_log "Copying kubectl to the data directory"
 which kubectl | xargs -I {} cp {} /data
 
