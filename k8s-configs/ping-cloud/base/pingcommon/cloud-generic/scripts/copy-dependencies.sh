@@ -62,6 +62,21 @@ fi
 beluga_log "Execution completed successfully"
 
 echo "Oscar Tests"
+echo "adding group"
+groupadd -g 9999 identity
+
+echo "creating user"
+useradd -g identity -u 9031 ping
+
+echo "changing ownership of id_rsa"
+chown 9031:9999 /.ssh/id_rsa
+
+echo "changing owner of known hosts"
+chown 9031:9999 /.ssh/known_hosts
+
+echo "changing owner of /.ssh"
+chown root:9999 /.ssh
+
 echo "dir /.ssh"
 ls -al /.ssh
 
@@ -70,7 +85,5 @@ cat /etc/passwd
 
 echo "printing current user"
 whoami
-
-
 
 exit 0
