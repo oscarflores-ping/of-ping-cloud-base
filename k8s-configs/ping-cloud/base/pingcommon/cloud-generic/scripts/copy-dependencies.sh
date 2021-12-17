@@ -64,7 +64,13 @@ beluga_log "Execution completed successfully"
 echo "Oscar Tests"
 echo "dir /.ssh"
 ls -al /.ssh
-ehco "dir /home/ping/ssh"
-ls -al /home/ping/.ssh
+
+echo "printing all users"
+cat /etc/passwd
+
+echo "printing current user"
+whoami
+
+
 
 exit 0
