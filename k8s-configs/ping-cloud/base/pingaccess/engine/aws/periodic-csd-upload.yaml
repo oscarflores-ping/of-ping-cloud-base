@@ -1,0 +1,41 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: pingaccess-periodic-csd-upload
+spec:
+  schedule: "0 * * * *"
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccount: ping-serviceaccount
+          restartPolicy: OnFailure
+          containers:
+          - name: pingaccess-periodic-csd-upload
+            image:705370621539.dkr.ecr.us-west-2.amazonaws.com/pingcloud-apps/pingaccess:6.3.1-v1.0.18-pdo-2957
+            imagePullPolicy: IfNotPresent
+            securityContext:
+              runAsGroup: 9999
+              runAsNonRoot: true
+              runAsUser: 9031
+            command:
+            - /opt/in/backup-csd-data.sh
+            env:
+            - name: CSD_POD_ROLE
+              value: "pingaccess-engine"
+            - name: CSD_CONTAINER_NAME
+              value: "pingaccess"
+            envFrom:
+            - configMapRef:
+                name: pingaccess-environment-variables
+            volumeMounts:
+            - name: pingaccess-periodic-csd-upload
+              mountPath: /opt/in/backup-csd-data.sh
+              subPath: backup-csd-data.sh
+          volumes:
+          - name: pingaccess-periodic-csd-upload
+            configMap:
+              name: pingaccess-periodic-csd-upload
+              defaultMode: 0555
