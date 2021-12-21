@@ -69,7 +69,7 @@ spec:
             name: pingaccess-environment-variables
       - name: wait-for-services
         # FIXME: switch to same user as app
-        ssecurityContext:
+        securityContext:
           runAsGroup: 9999
           runAsNonRoot: true
           runAsUser: 9031
