@@ -18,7 +18,6 @@ spec:
         lastUpdateReason: "NA"
       labels:
         role: pingcentral
-        entitled-app: "true"
     spec:
       serviceAccount: ping-serviceaccount
       affinity:
@@ -36,10 +35,10 @@ spec:
                 topologyKey: "failure-domain.beta.kubernetes.io/zone"
       initContainers:
       - name: pingcentral-init
+        # FIXME: switch to same user as app
         securityContext:
-          runAsGroup: 9999
-          runAsNonRoot: true
-          runAsUser: 9031
+          runAsNonRoot: false
+          runAsUser: 0
         image: public.ecr.aws/r2h3l6e4/bitnami/kubectl:1.15.3
         imagePullPolicy: IfNotPresent
         command:
@@ -66,10 +65,9 @@ spec:
               name: pingcentral-environment-variables
       - name: newrelic-tags-exporter
         securityContext:
-          runAsGroup: 9999
-          runAsNonRoot: true
-          runAsUser: 9031
-        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/newrelic-tags-exporter:v1.1.0
+          runAsNonRoot: false
+          runAsUser: 0
+        image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/newrelic-tags-exporter:v1.0.7
         imagePullPolicy: IfNotPresent
         envFrom:
         - configMapRef:
@@ -99,11 +97,11 @@ spec:
           mountPath: /opt/shared-dir
       containers:
       - name: pingcentral
+        # Required because new GSA images run as non-root by default, and P1AS does not work with non-root user yet.
         securityContext:
-          runAsGroup: 9999
-          runAsNonRoot: true
-          runAsUser: 9031
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingcentral:1.8.1-v1.0.24
+          runAsNonRoot: false
+          runAsUser: 0
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingcentral:1.8.1-v1.0.21
         imagePullPolicy: IfNotPresent
         resources:
           requests:
@@ -151,8 +149,9 @@ spec:
               name: newrelic-license-key
               optional: false
         volumeMounts:
+          # FIXME: fix home directory when containers run as non-root user
           - name: ssh-dir
-            mountPath: /home/ping/.ssh
+            mountPath: /root/.ssh
           - name: shared-dir
             mountPath: /opt/shared-dir
           - name: topology-descriptor
@@ -176,8 +175,6 @@ spec:
           - name: data-dir
             mountPath: /opt/staging/newrelic.jar
             subPath: newrelic.jar
-      securityContext:
-        fsGroup: 9999
       volumes:
         - name: ssh-dir
           emptyDir: {}

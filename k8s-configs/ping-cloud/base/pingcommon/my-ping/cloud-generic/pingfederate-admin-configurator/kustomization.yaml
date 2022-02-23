@@ -5,7 +5,11 @@ namespace: ping-cloud
 
 commonLabels:
   app: ping-cloud
-  role: pingdatasync
+  role: pingfederate-admin-configurator
+
+generatorOptions:
+  disableNameSuffixHash: true
 
 resources:
-- ../../../../base/pingdatasync/config
+- job.yaml
+- rbac.yaml

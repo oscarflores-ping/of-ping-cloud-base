@@ -25,7 +25,7 @@ $patch: delete
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: pingone-configurator
+  name: pingfederate-admin-configurator
 $patch: delete
 
 ---
