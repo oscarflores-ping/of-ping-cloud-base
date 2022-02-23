@@ -30,7 +30,7 @@
 # operator on how to complete the migration and test the new cluster state.
 
 ### Global variables and utility functions ###
-PING_CLOUD_BASE='ping-cloud-base'
+PING_CLOUD_BASE='of-ping-cloud-base'
 UPDATE_SCRIPT_NAME='update-cluster-state.sh'
 CODE_GEN_DIR_NAME='code-gen'
 
