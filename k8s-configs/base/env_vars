@@ -27,7 +27,7 @@ PRIMARY_TENANT_DOMAIN=oscarflores-primary.ping-demo.com
 #     secondary regions are created to avoid pod rollouts. DNS_PING will simply ignore
 #     unreachable domains. If it is not set beforehand, then all servers in the PF
 #     cluster (admin and engines) must be re-rolled to pick up the change.
-SECONDARY_TENANT_DOMAINS=""
+SECONDARY_TENANT_DOMAINS="oscarflores-secondary.ping-demo.com"
 
 # Region-independent URL used for DNS failover/routing
 GLOBAL_TENANT_DOMAIN=global.oscarflores-primary.ping-demo.com
@@ -54,7 +54,7 @@ ORCH_API_SSM_PATH_PREFIX=/pcpt/orch-api
 # Cluster state repo details
 ############################################################
 # The known-hosts file to trust the cluster state repo server for git/ssh cloning
-KNOWN_HOSTS_CLUSTER_STATE_REPO="|1|sRrN8EVl4cCEcvqIIEkvTMW+G5w=|3c8Oewm2N5XcmU4kuGSXuMIGolA= ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg="
+KNOWN_HOSTS_CLUSTER_STATE_REPO="|1|2/bKwlV3q5giogO9seTxU/wmUs4=|JT6H37TCHsnpoF5s2IWlSl4ZG6k= ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg="
 
 CLUSTER_STATE_REPO_URL=ssh://git@github.com/oscarflores-ping/of-cluster-state-repo
 CLUSTER_STATE_REPO_PATH=${REGION_NICK_NAME}
@@ -72,7 +72,7 @@ PING_CLOUD_NAMESPACE=ping-cloud
 
 # The ping-cloud-base git URL and branch for base Kubernetes manifests
 K8S_GIT_URL=ssh://git@github.com/oscarflores-ping/of-ping-cloud-base
-K8S_GIT_BRANCH=pdo-3207
+K8S_GIT_BRANCH=v1.12-release-branch
 
 # The name of the Docker image registry
 ECR_REGISTRY_NAME=public.ecr.aws/r2h3l6e4
@@ -147,9 +147,9 @@ PA_GCOPTION=-XX:+UseParallelGC
 ###################################
 # PingCentral environment variables
 ###################################
-MYSQL_SERVICE_HOST=pingcentraldb.${PRIMARY_TENANT_DOMAIN}
-MYSQL_USER=ssm://pcpt/ping-central/rds/username
-MYSQL_PASSWORD=ssm://pcpt/ping-central/rds/password
+MYSQL_SERVICE_HOST=oscar-personal.cmpxy5bpieb9.us-west-2.rds.amazonaws.com
+MYSQL_USER=admin
+MYSQL_PASSWORD=2FederateM0re
 MYSQL_DATABASE=pingcentral
 
 ############################################################
@@ -161,12 +161,12 @@ PING_IDENTITY_DEVOPS_KEY=ssm://pcpt/devops-license/key
 ############################################################
 # Ping application image tags
 ############################################################
-PINGACCESS_IMAGE_TAG=6.3.1-v1.0.18
-PINGACCESS_WAS_IMAGE_TAG=6.3.1-v1.0.18
-PINGFEDERATE_IMAGE_TAG=10.3.3-v1.0.22
-PINGDIRECTORY_IMAGE_TAG=8.3.0.3-v1.0.23
+PINGACCESS_IMAGE_TAG=6.3.1-v1.0.19
+PINGACCESS_WAS_IMAGE_TAG=6.3.1-v1.0.19
+PINGFEDERATE_IMAGE_TAG=10.3.5-v1.0.23-no-IKs
+PINGDIRECTORY_IMAGE_TAG=8.3.0.0-v1.0.22-patch2.0
 PINGDELEGATOR_IMAGE_TAG=4.4.1-v1.0.8
-PINGCENTRAL_IMAGE_TAG=1.8.0-v1.0.20
+PINGCENTRAL_IMAGE_TAG=1.8.1-v1.0.21
 
 ############################################################
 # Ping solution image tags
