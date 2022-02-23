@@ -33,12 +33,32 @@ spec:
                   operator: In
                   values:
                   - "pingdirectory-0"
-              topologyKey: "kubernetes.io/zone"
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+      terminationGracePeriodSeconds: 300
       initContainers:
-      - name: pingdatasync-init
+      - name: wait-for-pds
         securityContext:
           runAsNonRoot: false
           runAsUser: 0
+        image: public.ecr.aws/r2h3l6e4/busybox:1.32
+        imagePullPolicy: IfNotPresent
+        command:
+          - /wait-for-pds.sh
+        volumeMounts:
+          - name: pingdatasync-init
+            mountPath: /utils.lib.sh
+            subPath: utils.lib.sh
+          - name: pingdatasync-init
+            mountPath: /wait-for-pds.sh
+            subPath: wait-for-pds.sh
+        envFrom:
+          - configMapRef:
+              name: pingdatasync-environment-variables
+      - name: pingdatasync-init
+        securityContext:
+          runAsGroup: 9999
+          runAsNonRoot: true
+          runAsUser: 9031
         image: public.ecr.aws/r2h3l6e4/bitnami/kubectl:1.15.3
         imagePullPolicy: IfNotPresent
         command:
@@ -60,17 +80,23 @@ spec:
           - name: pingdatasync-init
             mountPath: /utils.lib.sh
             subPath: utils.lib.sh
+        env:
+          - name: P1AS_PD_LDAPS_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: pingdirectory-environment-variables
+                key: LDAPS_PORT
         envFrom:
           - configMapRef:
               name: pingdatasync-environment-variables
       containers:
       - name: pingdatasync
         securityContext:
-          runAsNonRoot: false
-          runAsUser: 0
-        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdatasync:8.2.0.6-v1.0.0
-        imagePullPolicy: Always
-        # FIXME: Determine recommended resources in P1AS
+          runAsGroup: 9999
+          runAsNonRoot: true
+          runAsUser: 9031
+        image: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingdatasync:8.2.0.6-v1.0.10
+        imagePullPolicy: IfNotPresent
         resources:
           limits:
             memory: "4Gi"
@@ -81,14 +107,14 @@ spec:
         readinessProbe:
           exec:
             command: [/opt/readiness.sh]
-          initialDelaySeconds: 60
+          initialDelaySeconds: 90
           periodSeconds: 5
           failureThreshold: 5
           timeoutSeconds: 5
         livenessProbe:
           exec:
             command: [/opt/liveness.sh]
-          initialDelaySeconds: 60
+          initialDelaySeconds: 90
           periodSeconds: 30
           failureThreshold: 5
           timeoutSeconds: 5
@@ -105,15 +131,45 @@ spec:
               secretKeyRef:
                 name: pingdatasync-passwords
                 key: root-user-password
-          - name: PING_DATASYNC_POD_NAME
+          - name: EXT_PD_SYNC_BIND_DN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pingdatasync-passwords
+                key: EXT_PD_SYNC_BIND_DN_PASSWORD
+          - name: EXT_PD_ADMIN_BIND_DN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pingdatasync-passwords
+                key: EXT_PD_ADMIN_BIND_DN_PASSWORD
+          - name: P1AS_PD_SYNC_BIND_DN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pingdirectory-passwords
+                key: admin-user-password
+          - name: P1AS_PD_LDAPS_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: pingdirectory-environment-variables
+                key: LDAPS_PORT
+          - name: P1AS_PD_ADMIN_BIND_DN
+            valueFrom:
+              configMapKeyRef:
+                name: pingdirectory-environment-variables
+                key: ADMIN_BIND_DN
+          - name: P1AS_PD_SYNC_BIND_DN
+            valueFrom:
+              configMapKeyRef:
+                name: pingdirectory-environment-variables
+                key: SYNC_BIND_DN
+          - name: PINGDATASYNC_POD_NAME
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
-          - name: PING_DATASYNC_POD_NAMESPACE
+          - name: PINGDATASYNC_POD_NAMESPACE
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          - name: PING_DATASYNC_POD_IP
+          - name: PINGDATASYNC_POD_IP
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
@@ -124,7 +180,7 @@ spec:
               name: pingcommon-environment-variables
         volumeMounts:
           - name: ssh-dir
-            mountPath: /root/.ssh
+            mountPath: /home/ping/.ssh
           - name: data-dir
             mountPath: /usr/local/bin/kubectl
             subPath: kubectl
@@ -140,9 +196,11 @@ spec:
           - name: pingdatasync-passwords
             mountPath: /usr/local/secrets
             readOnly: true
-          - name: pingdatasync-license
+          - name: pingdirectory-license
             mountPath: /opt/in/instance/conf/PingDirectory.lic
             subPath: PingDirectory.lic
+      securityContext:
+        fsGroup: 9999
       volumes:
         - name: ssh-dir
           emptyDir: {}
@@ -172,8 +230,8 @@ spec:
             secretName: pingdatasync-passwords
             optional: true
             defaultMode: 0400
-        - name: pingdatasync-license
+        - name: pingdirectory-license
           secret:
-            secretName: pingdatasync-license
+            secretName: pingdirectory-license
             optional: true
             defaultMode: 0400

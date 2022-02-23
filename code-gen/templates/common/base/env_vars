@@ -84,6 +84,9 @@ TENANT_NAME=${TENANT_NAME}
 # single P14C customer. All of these apps will be created within the "Administrators" environment in the tenant.
 ENVIRONMENT_PREFIX=${ENVIRONMENT_PREFIX}
 
+# PingDirectory pod name where DataSync will deploy itself within same availability zone. Default pod is pingdirectory-0.
+P1AS_PD_POD_NAME=pingdirectory-0
+
 ############################################################
 # Server profile variables
 ############################################################
@@ -161,20 +164,21 @@ PING_IDENTITY_DEVOPS_KEY=${PING_IDENTITY_DEVOPS_KEY}
 ############################################################
 # Ping application image tags
 ############################################################
-PINGACCESS_IMAGE_TAG=6.3.1-v1.0.20
-PINGACCESS_WAS_IMAGE_TAG=6.3.1-v1.0.20
-PINGFEDERATE_IMAGE_TAG=10.3.3-v1.0.25
-PINGDIRECTORY_IMAGE_TAG=8.3.0.3-v1.0.25
-PINGDELEGATOR_IMAGE_TAG=4.4.1-v1.0.8
-PINGCENTRAL_IMAGE_TAG=1.8.1-v1.0.22
+PINGACCESS_IMAGE_TAG=6.3.3-v1.0.25
+PINGACCESS_WAS_IMAGE_TAG=6.3.3-v1.0.25
+PINGFEDERATE_IMAGE_TAG=11.0.1-v1.0.29
+PINGDIRECTORY_IMAGE_TAG=8.3.0.3-v1.0.29
+PINGDELEGATOR_IMAGE_TAG=4.8.0-v1.0.10
+PINGCENTRAL_IMAGE_TAG=1.8.1-v1.0.24
+PINGDATASYNC_IMAGE_TAG=8.2.0.6-v1.0.10
 
 ############################################################
 # Ping solution image tags
 ############################################################
-METADATA_IMAGE_TAG=v1.0.4
-P14C_BOOTSTRAP_IMAGE_TAG=v1.0.11
-P14C_INTEGRATION_IMAGE_TAG=v1.1.0
-ANSIBLE_BELUGA_IMAGE_TAG=v1.0.1
+METADATA_IMAGE_TAG=v1.0.6
+P14C_BOOTSTRAP_IMAGE_TAG=v1.2.0
+P14C_INTEGRATION_IMAGE_TAG=v1.4.0
+ANSIBLE_BELUGA_IMAGE_TAG=v1.0.2
 
 ############################################################
 # Cluster name variables

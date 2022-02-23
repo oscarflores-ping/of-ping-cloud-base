@@ -162,8 +162,10 @@ ${PINGACCESS_WAS_IMAGE_TAG}
 ${PINGFEDERATE_IMAGE_TAG}
 ${PINGDIRECTORY_IMAGE_TAG}
 ${PINGDELEGATOR_IMAGE_TAG}
+${PINGDATASYNC_IMAGE_TAG}
 ${IRSA_PING_ANNOTATION_KEY_VALUE}
-${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}'
+${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}
+${DATASYNC_P1AS_SYNC_SERVER}'
 
 ########################################################################################################################
 # Export some derived environment variables.
