@@ -30,7 +30,7 @@ ARTIFACTS_JSON_FILE_NAME='artifact-list.json'
 PROFILE_REPO='profile-repo'
 CUSTOMER_HUB='customer-hub'
 
-PING_CLOUD_BASE='ping-cloud-base'
+PING_CLOUD_BASE='of-ping-cloud-base'
 
 # If true, reset to the OOTB profile state for the new version, i.e. perform no migration.
 RESET_TO_DEFAULT="${RESET_TO_DEFAULT:-false}"

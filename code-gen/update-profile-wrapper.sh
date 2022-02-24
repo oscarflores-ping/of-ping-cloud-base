@@ -30,7 +30,7 @@
 # files, so they'll always be preserved.
 
 ### Global variables and utility functions ###
-PING_CLOUD_BASE='ping-cloud-base'
+PING_CLOUD_BASE='of-ping-cloud-base'
 UPDATE_SCRIPT_NAME='update-profile.sh'
 CODE_GEN_DIR_NAME='code-gen'
 
