@@ -84,9 +84,6 @@ TENANT_NAME=${TENANT_NAME}
 # single P14C customer. All of these apps will be created within the "Administrators" environment in the tenant.
 ENVIRONMENT_PREFIX=${ENVIRONMENT_PREFIX}
 
-# PingDirectory pod name where DataSync will deploy itself within same availability zone. Default pod is pingdirectory-0.
-P1AS_PD_POD_NAME=pingdirectory-0
-
 ############################################################
 # Server profile variables
 ############################################################
@@ -167,10 +164,10 @@ PING_IDENTITY_DEVOPS_KEY=${PING_IDENTITY_DEVOPS_KEY}
 PINGACCESS_IMAGE_TAG=6.3.3-v1.0.25
 PINGACCESS_WAS_IMAGE_TAG=6.3.3-v1.0.25
 PINGFEDERATE_IMAGE_TAG=11.0.1-v1.0.29
-PINGDIRECTORY_IMAGE_TAG=8.3.0.3-v1.0.29
+PINGDIRECTORY_IMAGE_TAG=8.3.0.5-v1.0.30
 PINGDELEGATOR_IMAGE_TAG=4.8.0-v1.0.10
 PINGCENTRAL_IMAGE_TAG=1.8.1-v1.0.24
-PINGDATASYNC_IMAGE_TAG=8.2.0.6-v1.0.10
+PINGDATASYNC_IMAGE_TAG=8.2.0.6-v1.0.11
 
 ############################################################
 # Ping solution image tags

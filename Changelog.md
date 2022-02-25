@@ -18,6 +18,7 @@
 _Changes:_
 
 - [X] PDO-2092 Allow UDP ports to enable PF RADIUS functionality
+- [X] PDO-2233 Change "apiVersion" for CRD resources in ping-cloud-base
 - [X] PDO-2350 Add Metric For JVM GC CPU percent in PF
 - [X] PDO-2351 Add Metric For JVM Old Gen Collected percent in PF
 - [X] PDO-2354 Add Metric For JVM GC CPU percent in PA
@@ -54,7 +55,6 @@ _Changes:_
 - [X] PDO-3340 PA-WAS pods crashed during 82-upload-csd-s3.sh hook run on test/dev clusters
 - [X] PDO-3341 Run PingDataSync using nonroot user
 - [X] PDO-3343 Upgrade PingDelegator/DelegatedAdmin to 4.8.0
-- [X] PDO-3359 Dynamically deploy PingDataSync in the same availability zone as PingDirectory
 - [X] PDO-3369 Update p1/newrelic-tags-exporter to run with "ping" user, "identity" group
 - [X] PDO-3370 (BugFix) PD running into crashloop after restart with missing PingDirectory.lic file
 - [X] PDO-3371 Update all pingcloud-apps images to support ssh-rsa HostKeyAlgorithm
@@ -72,6 +72,7 @@ _Changes:_
 - [X] PDO-3502 Update DataSync to use USER_BASE_DN variable
 - [X] PDO-3513 (BugFix) Logstash crashlooping due to updated plugin dependencies
 - [X] PDO-3540 Fix metadata by updating flask to v2.0.3
+- [X] PDO-3557 Update PD to 8.3.0.5 to fix JVM crashes
 
 ### 1.12.0
 
