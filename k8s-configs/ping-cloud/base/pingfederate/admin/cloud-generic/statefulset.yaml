@@ -142,7 +142,7 @@ spec:
           runAsGroup: 9999
           runAsNonRoot: true
           runAsUser: 9031
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         env:
         - name: OPERATIONAL_MODE
           value: CLUSTERED_CONSOLE
