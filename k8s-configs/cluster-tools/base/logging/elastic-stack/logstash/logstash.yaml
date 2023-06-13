@@ -5,7 +5,7 @@ metadata:
   labels:
     app: logstash-elastic
 spec:
-  replicas: 2
+  podManagementPolicy: Parallel
   updateStrategy:
     type: RollingUpdate
   selector:
@@ -44,7 +44,7 @@ spec:
             runAsNonRoot: true
             runAsUser: 1000
             allowPrivilegeEscalation: false
-          image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.23.0
+          image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.24.0
           imagePullPolicy: IfNotPresent
           command:
             - sh
@@ -83,6 +83,20 @@ spec:
             - name: enrichment-cache-files
               mountPath: /enrichment-cache-files
       containers:
+        - name: exporter
+          image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/prom/logstash-exporter:v0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9198
+              name: metrics
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "500m"
+              memory: 500Mi
+            requests:
+              cpu: "150m"
+              memory: 100Mi
         - name: logstash
           image: public.ecr.aws/r2h3l6e4/pingcloud-monitoring/logstash/dev:v1.18-release-branch-latest
           imagePullPolicy: Always
@@ -99,15 +113,11 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
             - name: CONFIG_RELOAD_AUTOMATIC
-              value: 'true'
-            - name: CONFIG_RELOAD_INTERVAL
-              value: 5s
+              value: 'false'
             - name: LOG_FORMAT
               value: json
-            - name: PIPELINE_BATCH_DELAY
-              value: '50'
             - name: PIPELINE_BATCH_SIZE
-              value: '500'
+              value: '1000'
             - name: PIPELINE_ECS_COMPATIBILITY
               value: disabled
             - name: PIPELINE_ORDERED
@@ -116,14 +126,37 @@ spec:
               value: persisted
             - name: QUEUE_MAX_BYTES
               value: 1000gb
+            - name: QUEUE_DRAIN
+              value: "true"
+            - name: LS_JAVA_OPTS
+              value: "-Xms1g -Xmx1g"
           envFrom:
             - configMapRef:
                 name: elk-environment-variables
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 300
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 3
+            timeoutSeconds: 5
           resources:
             limits:
+              cpu: "500m"
               memory: 4Gi
             requests:
-              cpu: 150m
+              cpu: "150m"
               memory: 1Gi
           ports:
             - containerPort: 9600
@@ -185,7 +218,14 @@ spec:
             - name: enrichment-cache-files
               mountPath: /enrichment-cache-files
               readOnly: false
-      terminationGracePeriodSeconds: 30
+          resources:
+            limits:
+              cpu: "500m"
+              memory: 500Mi
+            requests:
+              cpu: "150m"
+              memory: 100Mi
+      terminationGracePeriodSeconds: 60
       volumes:
         - name: logstash-pipeline-main
           configMap:
@@ -240,6 +280,8 @@ spec:
       name: rest
     - port: 8080
       name: http-log-input
+    - port: 9198
+      name: metrics
 
 ---
 apiVersion: v1

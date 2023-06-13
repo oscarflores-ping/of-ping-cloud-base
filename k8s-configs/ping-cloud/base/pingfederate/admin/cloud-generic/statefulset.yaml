@@ -52,7 +52,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.23.0
+        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.24.0
         imagePullPolicy: IfNotPresent
         command:
         - /copy-dependencies.sh
@@ -323,7 +323,7 @@ spec:
     spec:
       accessModes:
       - ReadWriteOnce
-      storageClassName: pingfederate-gp2
+      storageClassName: pingfederate-gp3
       resources:
         requests:
           storage: 20Gi

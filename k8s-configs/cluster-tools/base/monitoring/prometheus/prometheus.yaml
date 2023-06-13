@@ -18,7 +18,7 @@ spec:
       serviceAccountName: prometheus
       containers:
       - name: prometheus
-        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/prom/prometheus:v2.39.1
+        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/prom/prometheus:v2.42.0
         args:
           - "--config.file=/etc/prometheus/prometheus.yml"
           - "--storage.tsdb.retention.time=$(PROMETHEUS_RETENTION_TIME)"
@@ -47,8 +47,8 @@ spec:
         - containerPort: 9090
         resources:
           limits:
-            cpu: 1000m
-            memory: 4000Mi
+            cpu: 1500m
+            memory: 5500Mi
           requests:
             cpu: 100m
             memory: 2000Mi

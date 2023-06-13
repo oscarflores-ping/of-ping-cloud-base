@@ -2,7 +2,7 @@
 
 . "./utils.lib.sh"
 
-NEWRELIC_VERSION="7.11.1"
+NEWRELIC_VERSION="8.0.1"
 
 beluga_log "Copying logger.lib.sh"
 test -f ./logger.lib.sh && cp ./logger.lib.sh /data/logger.lib.sh
@@ -39,7 +39,7 @@ wget -qO "${DST_FILE}" \
     https://ping-artifacts.s3-us-west-2.amazonaws.com/pingcommon/jmx-prometheus-javaagent/0.14.0/jmx_prometheus_javaagent-0.14.0.jar
 
 beluga_log 'Checking for jmx_prometheus_javaagent jar file in data directory'
-if test ! -f "${DST_FILE}"; then
+if test ! -s "${DST_FILE}"; then
     beluga_log "Failed to locate '${DST_FILE}'" 'ERROR'
     exit 1
 fi
@@ -51,7 +51,7 @@ wget -qO "${DST_FILE}" \
     "https://ping-artifacts.s3.amazonaws.com/pingcommon/newrelic-java-agent/${NEWRELIC_VERSION}/newrelic.jar"
 
 beluga_log 'Checking for newrelic jar file in data directory'
-if test ! -f "${DST_FILE}"; then
+if test ! -s "${DST_FILE}"; then
     beluga_log "Failed to locate '${DST_FILE}'" 'ERROR'
     exit 1
 fi

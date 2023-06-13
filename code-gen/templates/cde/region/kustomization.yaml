@@ -3,6 +3,10 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 
 resources:
 - ../base
+- pingdirectory
+- pingfederate
+- pingaccess
+- pingdelegator
 - custom-resources
 
 generatorOptions:
@@ -150,11 +154,17 @@ configMapGenerator:
 
 # Pingcloud-healthcheck
 - name: pingcloud-healthcheck-environment-variables
-  namespace: ${PING_CLOUD_NAMESPACE}
   behavior: merge
   envs:
   - ../base/env_vars
   - env_vars
+
+# Health namespace environment variables
+- name: cluster-health-environment-variables
+  behavior: merge
+  envs:
+    - ../base/env_vars
+    - env_vars
 
 # PingCloud-oauth
 - name: p14c-oauth-service-environment-variables
@@ -201,7 +211,7 @@ patchesStrategicMerge:
 - custom-patches.yaml
 
 ### Regional enablement - remove admins, backups, etc. from secondary ###
-### These patches should be commented out on the primary region ###
+### The removal of these patches is handled automatically via generate-cluster-state script, manual toggling is not needed ###
 
 - ../base/ping-cloud/pingdirectory/server/remove-from-secondary-patch.yaml
 
@@ -217,3 +227,20 @@ patchesStrategicMerge:
 - ../base/cluster-tools/monitoring/remove-from-secondary-patch.yaml
 - ../base/cluster-tools/logging/remove-from-secondary-patch.yaml
 - ../base/cluster-tools/health/remove-from-secondary-patch.yaml
+
+### The removal of these patches is handled automatically via git-ops-command.sh script, manual toggling is not needed ###
+
+- pingaccess/ff-external-ingress/remove-external-ingress.yaml
+- pingdelegator/ff-external-ingress/remove-external-ingress.yaml
+- pingdirectory/ff-external-ingress/remove-external-ingress.yaml
+- pingfederate/ff-external-ingress/remove-external-ingress.yaml
+### The patch is copied from pingcommon
+- ../base/ping-cloud/pingaccess-was/ff-external-ingress/remove-external-ingress.yaml
+
+#- ../base/ping-cloud/pingfederate/provisioning/remove-from-secondary-patch.yaml
+
+### Developer CDE Environments - the following will be UNCOMMENTED if we are in a developer CDE
+
+### CloudWatch is disabled by default in developer CDEs for cost savings
+### If you want CloudWatch enabled in a developer CDE, make sure the below is commented out *in your CSR*
+# - ../base/cluster-tools/monitoring/remove-from-developer-cde-patch.yaml

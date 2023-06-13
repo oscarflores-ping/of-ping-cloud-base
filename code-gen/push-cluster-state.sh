@@ -3,6 +3,9 @@
 # If VERBOSE is true, then output line-by-line execution
 "${VERBOSE:-false}" && set -x
 
+# PREREQUISITES: Should be compatible with Debian.
+#                This script is used by platform automation on Ubuntu (Debian) to push generated K8s manifest.
+#
 # WARNING: This script must only be used to seed the initial cluster state. It is destructive and will replace the
 # contents of the remote branches corresponding to the different Customer Deployment Environments with new state.
 
@@ -16,9 +19,9 @@
 #   INCLUDE_PROFILES_IN_CSR -> A flag indicating whether or not to include profile code into the CSR. Defaults to
 #       true, if unset. This flag will be removed (or its default set to true) when Versent provisions a new profile
 #       repo exclusively for server profiles.
-#   ENVIRONMENTS -> A space-separated list of environments. Defaults to 'dev test stage prod', if unset. If provided,
-#       it must contain all or a subset of the environments currently created by the generate-cluster-state.sh script,
-#       i.e. dev, test, stage, prod.
+#   SUPPORTED_ENVIRONMENT_TYPES -> A space-separated list of environments. Defaults to 'dev test stage prod customer-hub',
+#       if unset. If provided, it must contain all or a subset of the environments currently created by the
+#       generate-cluster-state.sh script, i.e. dev, test, stage, prod, customer-hub.
 #   PUSH_RETRY_COUNT -> The number of times to try pushing to the cluster state repo with a 2s sleep between each
 #       attempt to avoid IAM permission to repo sync issue.
 #   PUSH_TO_SERVER -> A flag indicating whether or not to push the code to the remote server. Defaults to true.
@@ -60,50 +63,6 @@ dir_deep_clean() {
     echo "Contents of directory ${dir} after deletion:"
     find "${dir}" -mindepth 1 -maxdepth 1
   fi
-}
-
-########################################################################################################################
-# Organizes the Kubernetes configuration files to push into the cluster state repo for a specific Customer Deployment
-# Environment (CDE) or customer-hub.
-#
-# Arguments
-#   ${1} -> The directory where cluster state code was generated, i.e. the TARGET_DIR to generate-cluster-state.sh.
-#   ${2} -> The name of the directory under which the sources for the environment may be found in generated code.
-#   ${3} -> The environment type, i.e. dev, test, stage or prod.
-#   ${4} -> The output empty directory into which to organize the code to push for the environment and region.
-#   ${5} -> Flag indicating whether or not the provided region is the primary region.
-########################################################################################################################
-organize_code_for_environment() {
-  generated_code_dir="${1}"
-  src_rel_dir_for_env="${2}"
-  env="${3}"
-  out_dir="${4}"
-  is_primary="${5}"
-
-  src_profiles_dir="${generated_code_dir}/${PROFILE_REPO_DIR}/${PROFILES_DIR}/${src_rel_dir_for_env}"
-  dst_profiles_dir="${out_dir}/${PROFILES_DIR}"
-
-  src_k8s_dir="${generated_code_dir}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${src_rel_dir_for_env}"
-  dst_k8s_dir="${out_dir}/${K8S_CONFIGS_DIR}"
-
-  # shellcheck disable=SC2010
-  region="$(ls "${src_k8s_dir}" | grep -v "${BASE_DIR}")"
-
-  "${is_primary}" && type='primary' || type='secondary'
-  echo "Organizing code for environment '${env}' into '${out_dir}' for ${type} region '${region}'"
-
-  # Copy the environment-specific profiles and k8s-configs files into the destination directory for the environment.
-  # Also, copy the common files (e.g. .gitignore, update-cluster-state-wrapper.sh, etc.) to the output directory.
-  cp -pr "${src_profiles_dir}"/. "${dst_profiles_dir}"
-  find "${generated_code_dir}/${PROFILE_REPO_DIR}" -type f -mindepth 1 -maxdepth 1 -exec cp {} "${out_dir}" \;
-
-  cp -pr "${src_k8s_dir}"/. "${dst_k8s_dir}"
-  find "${generated_code_dir}/${CLUSTER_STATE_REPO_DIR}" -type f -mindepth 1 -maxdepth 1 -exec cp {} "${out_dir}" \;
-
-  # Last but not least, stick the version of Beluga into a version.txt file.
-  beluga_version="$(find "${src_k8s_dir}" -name env_vars -exec grep '^K8S_GIT_BRANCH=' {} \; | cut -d= -f2)"
-  echo "Beluga version is ${beluga_version} for environment ${env}"
-  echo "${beluga_version}" > "${out_dir}"/version.txt
 }
 
 ########################################################################################################################
@@ -153,7 +112,7 @@ fi
 QUIET="${QUIET:-false}"
 
 ALL_ENVIRONMENTS='dev test stage prod customer-hub'
-ENVIRONMENTS="${ENVIRONMENTS:-${ALL_ENVIRONMENTS}}"
+SUPPORTED_ENVIRONMENT_TYPES="${SUPPORTED_ENVIRONMENT_TYPES:-${ALL_ENVIRONMENTS}}"
 
 GENERATED_CODE_DIR="${GENERATED_CODE_DIR:-/tmp/sandbox}"
 
@@ -170,7 +129,7 @@ fi
 
 # This is a destructive script by design. Add a warning to the user if local changes are being destroyed though.
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2> /dev/null)"
-if test "${CURRENT_BRANCH}" && test -n "$(git status -s)"; then
+if test "${CURRENT_BRANCH}" && test -n "$(git status -s)" && ! ${DISABLE_GIT}; then
   echo "WARN: The following local changes in current branch '${CURRENT_BRANCH}' will be destroyed:"
   git status
 
@@ -193,19 +152,13 @@ if ! ${DISABLE_GIT}; then
   fi
 fi
 
-# The ENVIRONMENTS variable can either be the CDE names or CHUB name (e.g. dev, test, stage, prod or customer-hub) or
+# The SUPPORTED_ENVIRONMENT_TYPES variable can either be the CDE names or CHUB name (e.g. dev, test, stage, prod or customer-hub) or
 # the branch names (e.g. v1.8.0-dev, v1.8.0-test, v1.8.0-stage, v1.8.0-master or v1.8.0-customer-hub). It will be the
 # CDE names or CHUB name on initial seeding of the cluster state repo. On upgrade of the cluster state repo it will be
 # the branch names. We must handle both cases. Note that the 'prod' environment will have a branch name suffix
 # of 'master'.
-for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
+for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   if echo "${ENV_OR_BRANCH}" | grep -q "${CUSTOMER_HUB}"; then
-    # Do not push any changes to the customer-hub branch when this script is run on secondary regions.
-    if ! "${IS_PRIMARY}"; then
-      echo "Not pushing any changes to ${CUSTOMER_HUB} branch for secondary region"
-      continue
-    fi
-
     GIT_BRANCH="${ENV_OR_BRANCH}"
     DEFAULT_CDE_BRANCH="${CUSTOMER_HUB}"
 
@@ -224,9 +177,8 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   fi
 
   echo "Processing branch '${GIT_BRANCH}' for environment '${ENV}' and default branch '${DEFAULT_CDE_BRANCH}'"
-
-  ENV_CODE_DIR=$(mktemp -d)
-  organize_code_for_environment "${GENERATED_CODE_DIR}" "${ENV_OR_BRANCH}" "${ENV}" "${ENV_CODE_DIR}" "${IS_PRIMARY}"
+  # Get app paths
+  APP_PATHS=$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}" -mindepth 1 -maxdepth 1 -type d)
 
   if ! ${DISABLE_GIT}; then
     # Check if the branch exists locally. If so, switch to it.
@@ -272,51 +224,74 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
     dir_deep_clean "${PWD}"
 
     if "${IS_PROFILE_REPO}" || "${INCLUDE_PROFILES_IN_CSR}"; then
-      # Copy the base files into the environment directory.
-      src_dir="${ENV_CODE_DIR}"
+      # Copy the base files into the repo.
+      src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}"
       echo "Copying base files from ${src_dir} to ${PWD}"
       cp "${src_dir}"/.gitignore ./
-      cp "${src_dir}"/version.txt ./
       cp "${src_dir}"/update-profile-wrapper.sh ./
 
       # Copy the profiles.
-      src_dir="${ENV_CODE_DIR}/${PROFILES_DIR}"
-      echo "Copying ${src_dir} to ${PWD}"
-      cp -pr "${src_dir}" ./
+      mkdir -p "${PROFILES_DIR}"
+
+      # Copy the profiles.
+      src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}/${PROFILES_DIR}/${ENV_OR_BRANCH}/"
+      echo "Copying ${src_dir} to ${PROFILES_DIR}"
+      find "${src_dir}" -maxdepth 1 -mindepth 1 -type d -exec cp -pr {} "${PROFILES_DIR}"/ \;
     fi
 
     if ! "${IS_PROFILE_REPO}"; then
-      # Copy the base files into the environment directory.
-      src_dir="${ENV_CODE_DIR}"
+      # Copy the base files into the repo.
+      src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}"
       echo "Copying base files from ${src_dir} to ${PWD}"
       cp "${src_dir}"/.gitignore ./
-      cp "${src_dir}"/version.txt ./
       cp "${src_dir}"/update-cluster-state-wrapper.sh ./
+      cp "${src_dir}"/csr-validation.sh ./
 
-      # Copy the k8s-configs.
-      mkdir -p "${K8S_CONFIGS_DIR}"
+      # Copy each app's base files into the repo
+      for app_path in ${APP_PATHS}; do
+        app_name=$(basename "${app_path}")
 
-      # Copy base files into the k8s-configs directory.
-      src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}"
-      echo "Copying base files from ${src_dir} to ${K8S_CONFIGS_DIR}"
-      find "${src_dir}" -type f -maxdepth 1 -exec cp {} "${K8S_CONFIGS_DIR}" \;
+        # Make the app dir
+        mkdir -p "${app_name}"
 
-      # Copy the k8s-configs/base directory, which is common code for all regions.
-      src_dir="${ENV_CODE_DIR}/${K8S_CONFIGS_DIR}/${BASE_DIR}"
-      echo "Copying ${src_dir} to ${K8S_CONFIGS_DIR}"
-      cp -pr "${src_dir}" "${K8S_CONFIGS_DIR}/"
+        # Copy base files into the app directory.
+        src_dir="${app_path}"
+        echo "Copying base files from ${src_dir} to ${app_name}"
+        find "${src_dir}" -type f -maxdepth 1 -exec cp {} "${app_name}" \;
+
+        # Copy the base directory, which is common code for all regions.
+        src_dir="${app_path}/${BASE_DIR}"
+        echo "Copying ${src_dir} to ${app_name}"
+        cp -pr "${src_dir}" "${app_name}/"
+        
+      done
     fi
+
+    # Last but not least, stick the version of Beluga into a version.txt file.
+    beluga_version="$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}/${K8S_CONFIGS_DIR}" \
+      -name env_vars -exec grep '^K8S_GIT_BRANCH=' {} \; | cut -d= -f2)"
+    echo "Beluga version is ${beluga_version} for environment ${ENV}"
+    echo "${beluga_version}" > version.txt
   fi
 
   if "${IS_PROFILE_REPO}"; then
     commit_msg="Initial commit of profile code for environment '${ENV}' - ping-cloud-base@${PCB_COMMIT_SHA}"
   else
-    # shellcheck disable=SC2010
-    region="$(ls "${ENV_CODE_DIR}/${K8S_CONFIGS_DIR}" | grep -v "${BASE_DIR}")"
-    src_dir="${ENV_CODE_DIR}/${K8S_CONFIGS_DIR}/${region}"
+    # Copy each app's region files into the repo
+    for app_path in ${APP_PATHS}; do
+      app_name=$(basename "${app_path}")
 
-    echo "Copying ${src_dir} to ${K8S_CONFIGS_DIR}"
-    cp -pr "${src_dir}" "${K8S_CONFIGS_DIR}/"
+      # shellcheck disable=SC2010
+      region_path="$(find "${app_path}" -mindepth 1 -maxdepth 1 -type d ! -path '*/base')"
+      region=$(basename "${region_path}")
+      src_dir="${app_path}/$region"
+
+      # Make the app dir
+      mkdir -p "${app_name}"
+
+      echo "Copying ${src_dir} to ${app_name}"
+      cp -pr "${src_dir}" "${app_name}/"
+    done
 
     commit_msg="Initial commit of k8s code for environment '${ENV}' in region '${region}' - ping-cloud-base@${PCB_COMMIT_SHA}"
   fi

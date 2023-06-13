@@ -86,7 +86,7 @@ feature_flags() {
   # Map with the feature flag environment variable & the term to search to find the kustomization files
   flag_map="${RADIUS_PROXY_ENABLED}:ff-radius-proxy"
 
-  for flag in $flag_map ; do
+  for flag in $flag_map; do
     enabled="${flag%%:*}"
     search_term="${flag##*:}"
     log "${search_term} is set to ${enabled}"
@@ -96,11 +96,28 @@ feature_flags() {
       for kust_file in $(git grep -l "${search_term}" | grep "kustomization.yaml"); do
         log "Commenting out ${search_term} in ${kust_file}"
         sed -i.bak \
-            -e "/${search_term}/ s|^#*|#|g" \
-            "${kust_file}"
+          -e "/${search_term}/ s|^#*|#|g" \
+          "${kust_file}"
         rm -f "${kust_file}".bak
       done
     fi
+  done
+}
+########################################################################################################################
+# Comments the remove external ingress patch for ping apps from k8s-configs kustomization.yaml files.
+# Hence the apps which are part of list in EXTERNAL_INGRESS_ENABLED will have external ingress enabled.
+########################################################################################################################
+enable_external_ingress() {
+  cd "${TMP_DIR}"
+  for apps in ${EXTERNAL_INGRESS_ENABLED}; do
+    search_term="${apps}[/].*remove-external-ingress"
+    for kust_file in $(grep --exclude-dir=.git -rwl -e "${search_term}" | grep "kustomization.yaml"); do
+      log "Commenting external ingress for ${apps} in ${kust_file}"
+      sed -i.bak \
+        -e "/${search_term}/ s|^#*|#|g" \
+        "${kust_file}"
+      rm -f "${kust_file}".bak
+    done
   done
 }
 
@@ -138,14 +155,6 @@ cleanup() {
 
 # Main script
 
-# Validate descriptor.json file in a multi-region environment
-if [[ "${IS_MULTI_CLUSTER}" == "true" ]]; then
-  if [[ -f ./base/ping-cloud/descriptor.json ]]; then
-    # Verify JSON and descriptor file content is valid
-    python3 ./validation/verify_descriptor_json.py ./base/ping-cloud/descriptor.json
-  fi
-
-fi
 TARGET_DIR="${1:-.}"
 cd "${TARGET_DIR}" >/dev/null 2>&1
 
@@ -228,6 +237,7 @@ if test -f 'env_vars'; then
     done
 
     feature_flags "${TMP_DIR}/${K8S_GIT_BRANCH}"
+    enable_external_ingress
   )
   test $? -ne 0 && exit 1
 fi

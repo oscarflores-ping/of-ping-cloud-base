@@ -46,6 +46,9 @@ globalTenantDomain: "${GLOBAL_TENANT_DOMAIN}"
 # pingArtifactRepoUrl is the ping-hosted common artifacts URL
 pingArtifactRepoUrl: "${PING_ARTIFACT_REPO_URL}"
 
+# pdMonitorLogUrl is the customer-specific monitor-log URL for region
+pdMonitorLogUrl: "${PD_MONITOR_BUCKET_URL}"
+
 # logArchiveUrl is the customer-specific log URL for region
 logArchiveUrl: "${LOG_ARCHIVE_URL}"
 
@@ -70,9 +73,6 @@ ecrRegistryName: "${ECR_REGISTRY_NAME}"
 
 # ecr_env is the suffix used to denote to use dev image repositories
 ecrEnv: "/dev"
-
-# tenantName is the tenant or customer name
-tenantName: "${TENANT_NAME}"
 
 # clusterName is the eks cluster name
 clusterName: "${CLUSTER_NAME}"
@@ -177,6 +177,8 @@ healthcheckHttpbinPaPublicHostname: "healthcheck-httpbin-pa.${DNS_ZONE_DERIVED}"
 pfProvisioningEnabled: ${PF_PROVISIONING_ENABLED}
 
 radiusProxyEnabled: ${RADIUS_PROXY_ENABLED}
+
+external_ingress_enabled: ${EXTERNAL_INGRESS_ENABLED}
 ########################################################################################################################
 
 
@@ -187,11 +189,11 @@ radiusProxyEnabled: ${RADIUS_PROXY_ENABLED}
 # If they are needed uncomment & move to the 1st section
 # If they are still commented out when we get to PDO-4842, they will be deleted
 ########################################################################################################################
-#kustomizeBase: ${KUSTOMIZE_BASE}
+# kustomizeBase: ${KUSTOMIZE_BASE}
 
-#ansibleBelugaImageTag: v1.18-release-branch-latest
+# ansibleBelugaImageTag: v1.18-release-branch-latest
 
-#clusterNameLc: ${CLUSTER_NAME_LC} # Helm has a "lower" function that can be used with clusterName
+# clusterNameLc: ${CLUSTER_NAME_LC} # Helm has a "lower" function that can be used with clusterName
 
 
 ########################################################################################################################

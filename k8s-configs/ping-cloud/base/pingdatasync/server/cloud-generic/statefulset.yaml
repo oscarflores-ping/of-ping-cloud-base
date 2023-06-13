@@ -4,11 +4,11 @@ kind: StatefulSet
 metadata:
   name: pingdatasync
   labels:
-    role: pingdatasync-server
+    class: pingdatasync-server
 spec:
   selector:
     matchLabels:
-      role: pingdatasync-server
+      class: pingdatasync-server
   replicas: 1
   serviceName: pingdatasync-admin
   updateStrategy:
@@ -18,7 +18,7 @@ spec:
     metadata:
       name: pingdatasync
       labels:
-        role: pingdatasync-server
+        class: pingdatasync-server
       annotations:
         lastUpdateReason: "NA"
     spec:
@@ -66,7 +66,7 @@ spec:
           runAsNonRoot: true
           runAsUser: 9031
           allowPrivilegeEscalation: false
-        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.23.0
+        image: public.ecr.aws/r2h3l6e4/pingcloud-clustertools/bitnami/kubectl:1.24.0
         imagePullPolicy: IfNotPresent
         command:
           - /copy-dependencies.sh
@@ -252,7 +252,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-        storageClassName: pingdatasync-gp2
+        storageClassName: pingdatasync-gp3
         resources:
           requests:
             storage: 20Gi

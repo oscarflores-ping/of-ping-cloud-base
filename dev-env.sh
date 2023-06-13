@@ -86,11 +86,13 @@
 #                           | spec is saved before applying it.                  | ~/.kube/config or the config file
 #                           |                                                    | to which KUBECONFIG is set.
 #                           |                                                    |
-# LEGACY_LOGGING            | Flag indicating where we should send app logs -    | True
-#                           | to CloudWatch(if True) or to ELK (if False)        |
-#                           |                                                    |
 # LOG_ARCHIVE_URL           | The URL of the log archives. If provided, logs     | The string "unused"
 #                           | are periodically captured and sent to this URL.    |
+#                           |                                                    |
+# PD_MONITOR_BUCKET_URL     | The URL of the monitor,ldif exports and csd-log    |
+#                           | archives.If provided, logs are periodically        | The string "unused"
+#                           | captured and sent to this URL. Used only for       |
+#                           | PingDirectory at the moment                        |
 #                           |                                                    |
 # MYSQL_SERVICE_HOST        | The hostname of the MySQL database server.         | beluga-ci-cd-mysql.cmpxy5bpieb9.us-west-2.rds.amazonaws.com
 #                           |                                                    |
@@ -207,6 +209,12 @@ test -f ~/.pingidentity/devops && . ~/.pingidentity/devops
 
 # Source some utility methods.
 . utils.sh
+PWD=$(pwd)
+PCB_ROOT=${PWD/ping-cloud-base\/*/ping-cloud-base}
+source "${PCB_ROOT}/pingcloud-scripts.sh"
+
+BASH_UTILS_VERSION=1.0.0
+pingcloud-scripts::source_script bash_utils ${BASH_UTILS_VERSION}
 
 declare dryrun='false'
 declare skipTest='false'
@@ -275,6 +283,8 @@ log "Initial CONFIG_PARENT_DIR: ${CONFIG_PARENT_DIR}"
 
 log "Initial ARTIFACT_REPO_URL: ${ARTIFACT_REPO_URL}"
 log "Initial PING_ARTIFACT_REPO_URL: ${PING_ARTIFACT_REPO_URL}"
+
+log "Initial PD_MONITOR_BUCKET_URL: ${PD_MONITOR_BUCKET_URL}"
 log "Initial LOG_ARCHIVE_URL: ${LOG_ARCHIVE_URL}"
 log "Initial BACKUP_URL: ${BACKUP_URL}"
 log "Initial PGO_BACKUP_BUCKET_NAME: ${PGO_BACKUP_BUCKET_NAME}"
@@ -282,8 +292,6 @@ log "Initial PGO_BACKUP_BUCKET_NAME: ${PGO_BACKUP_BUCKET_NAME}"
 log "Initial MYSQL_SERVICE_HOST: ${MYSQL_SERVICE_HOST}"
 log "Initial MYSQL_USER: ${MYSQL_USER}"
 log "Initial MYSQL_PASSWORD: ${MYSQL_PASSWORD}"
-
-log "Initial LEGACY_LOGGING: ${LEGACY_LOGGING}"
 
 log "Initial PING_IDENTITY_DEVOPS_USER: ${PING_IDENTITY_DEVOPS_USER}"
 
@@ -323,6 +331,7 @@ export CONFIG_PARENT_DIR="${CONFIG_PARENT_DIR:-aws}"
 
 export ARTIFACT_REPO_URL="${ARTIFACT_REPO_URL:-unused}"
 export PING_ARTIFACT_REPO_URL="${PING_ARTIFACT_REPO_URL:-https://ping-artifacts.s3-us-west-2.amazonaws.com}"
+export PD_MONITOR_BUCKET_URL="${PD_MONITOR_BUCKET_URL:-unused}"
 export LOG_ARCHIVE_URL="${LOG_ARCHIVE_URL:-unused}"
 export BACKUP_URL="${BACKUP_URL:-unused}"
 
@@ -338,8 +347,6 @@ export MYSQL_PASSWORD="${MYSQL_PASSWORD:-ssm://aws/reference/secretsmanager//pcp
 
 export PING_IDENTITY_DEVOPS_USER="${PING_IDENTITY_DEVOPS_USER:-ssm://pcpt/devops-license/user}"
 export PING_IDENTITY_DEVOPS_KEY="${PING_IDENTITY_DEVOPS_KEY:-ssm://pcpt/devops-license/key}"
-
-export LEGACY_LOGGING="${LEGACY_LOGGING:-False}"
 
 #### FEATURE FLAGS #####################################################################################################
 
@@ -388,6 +395,7 @@ log "Using CONFIG_PARENT_DIR: ${CONFIG_PARENT_DIR}"
 
 log "Using ARTIFACT_REPO_URL: ${ARTIFACT_REPO_URL}"
 log "Using PING_ARTIFACT_REPO_URL: ${PING_ARTIFACT_REPO_URL}"
+log "Using PD_MONITOR_BUCKET_URL: ${PD_MONITOR_BUCKET_URL}"
 log "Using LOG_ARCHIVE_URL: ${LOG_ARCHIVE_URL}"
 log "Using BACKUP_URL: ${BACKUP_URL}"
 log "Using PGO_BACKUP_BUCKET_NAME: ${PGO_BACKUP_BUCKET_NAME}"
@@ -398,8 +406,6 @@ log "Using MYSQL_PASSWORD: ${MYSQL_PASSWORD}"
 log "Using MYSQL_DATABASE: ${MYSQL_DATABASE}"
 
 log "Using PING_IDENTITY_DEVOPS_USER: ${PING_IDENTITY_DEVOPS_USER}"
-
-log "Using LEGACY_LOGGING: ${LEGACY_LOGGING}"
 
 log "Using DEPLOY_FILE: ${DEPLOY_FILE}"
 log "Using K8S_CONTEXT: ${K8S_CONTEXT}"
@@ -445,11 +451,11 @@ if "${IS_MULTI_CLUSTER}"; then
   fi
 fi
 
-build_dev_deploy_file "${DEPLOY_FILE}" "${CLUSTER_TYPE}"
+utils::build_dev_deploy_file "${DEPLOY_FILE}" "${CLUSTER_TYPE}"
 
 if test "${dryrun}" = 'false'; then
   # Apply large CRDs depending on feature flags
-  apply_crds "${homeDir}"
+  utils::apply_crds "${homeDir}"
 
   log "Deploying ${DEPLOY_FILE} to cluster ${CLUSTER_NAME}, namespace ${PING_CLOUD_NAMESPACE} for tenant ${TENANT_DOMAIN}"
   kubectl apply -f "${DEPLOY_FILE}" --context "${K8S_CONTEXT}" | tee -a "${LOG_FILE}"
@@ -512,6 +518,7 @@ export CONFIG_REPO_BRANCH=${CONFIG_REPO_BRANCH}
 
 export ARTIFACT_REPO_URL=${ARTIFACT_REPO_URL}
 export PING_ARTIFACT_REPO_URL=${PING_ARTIFACT_REPO_URL}
+export PD_MONITOR_BUCKET_URL=${PD_MONITOR_BUCKET_URL}
 export LOG_ARCHIVE_URL=${LOG_ARCHIVE_URL}
 export BACKUP_URL=${BACKUP_URL}
 export PGO_BACKUP_BUCKET_NAME=${PGO_BACKUP_BUCKET_NAME}
@@ -527,8 +534,6 @@ export SERVICE_SSM_PATH_PREFIX=${SERVICE_SSM_PATH_PREFIX}
 
 export PING_IDENTITY_DEVOPS_USER=${PING_IDENTITY_DEVOPS_USER}
 export PING_IDENTITY_DEVOPS_KEY=${PING_IDENTITY_DEVOPS_KEY}
-
-export LEGACY_LOGGING=${LEGACY_LOGGING}
 
 export DASH_REPO_URL=${DASH_REPO_URL}
 export DASH_REPO_BRANCH=${DASH_REPO_BRANCH}
@@ -559,14 +564,16 @@ EOF
         -n "${PING_CLOUD_NAMESPACE}" -w --context "${K8S_CONTEXT}" | tee -a "${LOG_FILE}"
     done
 
+    CI_SCRIPTS_DIR="${SHARED_CI_SCRIPTS_DIR:-/ci-scripts}"
+
     log "Running integration tests"
-    for integration_test_dir in $(find 'ci-scripts/test/integration' -type d -mindepth 1 -maxdepth 1 -exec basename '{}' \;); do
+    for integration_test_dir in $(find 'tests' -type d -mindepth 1 -maxdepth 1 -exec basename '{}' \;); do
       log
       log "==============================================================================================="
-      log "      Executing integration tests in directory: ${integration_test_dir}            "
+      log "      Executing tests in directory: ${integration_test_dir}            "
       log "==============================================================================================="
 
-      ci-scripts/test/integration/run-integration-tests.sh "${integration_test_dir}" "${TEST_ENV_VARS_FILE}"
+      "${CI_SCRIPTS_DIR}"/test/run-tests.sh "${integration_test_dir}" "${TEST_ENV_VARS_FILE}"
       test_result=$?
 
       integration_test_failures=$((${integration_test_failures} + ${test_result}))

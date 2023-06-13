@@ -91,7 +91,6 @@ patchesStrategicMerge:
   data:
     cluster.name: ${CLUSTER_NAME}
     logs.region: ${REGION}
-    legacy_logging: "${LEGACY_LOGGING}"
     newrelic_cluster_name: ${NEW_RELIC_ENVIRONMENT_NAME}
   kind: ConfigMap
   metadata:
@@ -224,46 +223,6 @@ patchesStrategicMerge:
     namespace: newrelic
   $patch: delete
 
-# Healthcheck tests
-- |-
-  apiVersion: batch/v1
-  kind: CronJob
-  metadata:
-    name: healthcheck-cluster-health
-  spec: 
-    schedule: "@hourly"
-
-- |-
-  apiVersion: batch/v1
-  kind: CronJob
-  metadata:
-    name: healthcheck-pingaccess
-  spec: 
-    schedule: "@hourly"
-
-- |-
-  apiVersion: batch/v1
-  kind: CronJob
-  metadata:
-    name: healthcheck-pingaccess-was
-  spec: 
-    schedule: "@hourly"
-
-- |-
-  apiVersion: batch/v1
-  kind: CronJob
-  metadata:
-    name: healthcheck-pingdirectory
-  spec: 
-    schedule: "@hourly"
-
-- |-
-  apiVersion: batch/v1
-  kind: CronJob
-  metadata:
-    name: healthcheck-pingfederate
-  spec: 
-    schedule: "@hourly"
 - |-
   apiVersion: v1
   kind: Secret
@@ -272,6 +231,16 @@ patchesStrategicMerge:
     namespace: elastic-stack-logging
   data:
     NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY_BASE64}
+
+# Delete the CloudWatch DaemonSet to reduce costs in a developer environment
+# Comment out to in order to enable CloudWatch if required for testing
+- |-
+  apiVersion: apps/v1
+  kind: DaemonSet
+  metadata:
+    name: cloudwatch-agent
+    namespace: amazon-cloudwatch
+  $patch: delete
 
 patchesJson6902:
 
