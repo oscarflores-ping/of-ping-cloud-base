@@ -1090,5 +1090,6 @@ for ENV in ${SUPPORTED_ENVIRONMENT_TYPES}; do # ENV loop
   fi
 done # ENV loop
 
+echo "Oscar hello world"
 # Print a README of next steps to take.
 print_readme
