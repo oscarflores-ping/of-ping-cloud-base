@@ -218,6 +218,9 @@ spec:
             - name: logstash-search-template
               mountPath: /etc/logstash/templates
               readOnly: true
+            - name: os-index-templates
+              mountPath: /usr/share/logstash/index_templates
+              readOnly: true
             - name: enrichment-cache-files
               mountPath: /enrichment-cache-files
               readOnly: false
@@ -284,6 +287,9 @@ spec:
         - name: logstash-search-template
           configMap:
             name: logstash-search-template
+        - name: os-index-templates
+          configMap:
+            name: os-index-templates
         - name: enrichment-cache
           configMap:
             name: enrichment-cache
