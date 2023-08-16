@@ -108,10 +108,10 @@
 # NOTIFICATION_ENABLED         | Flag indicating if alerts should be sent to the    | True
 #                              | endpoint configured in the argo-events             |
 #                              |                                                    |
-# CUSTOMER_SSO_SSM_PATH_PREFIX | The prefix of the SSM path that contains PingOne   | /pcpt/customer/sso
+# CUSTOMER_SSM_PATH_PREFIX     | The prefix of an SSM path that contains PingOne    | /pcpt/customer
 #                              | state data required for the P14C/P1AS integration. |
 #                              |                                                    |
-# ORCH_API_SSM_PATH_PREFIX     | The prefix of the SSM path that contains MyPing    | /pcpt/orch-api
+# CUSTOMER_SSO_SSM_PATH_PREFIX | The prefix of the SSM path that contains PingOne   | ${CUSTOMER_SSM_PATH_PREFIX}/sso
 #                              | state data required for the P14C/P1AS integration. |
 #                              |                                                    |
 # PF_PROVISIONING_ENABLED      | Feature Flag - Indicates if the outbound           | False
@@ -271,8 +271,8 @@ log "Initial ENVIRONMENT: ${ENVIRONMENT}"
 log "Initial IS_MULTI_CLUSTER: ${IS_MULTI_CLUSTER}"
 log "Initial TOPOLOGY_DESCRIPTOR_FILE: ${TOPOLOGY_DESCRIPTOR_FILE}"
 log "Initial PLATFORM_EVENT_QUEUE_NAME: ${PLATFORM_EVENT_QUEUE_NAME}"
+log "Initial CUSTOMER_SSM_PATH_PREFIX: ${CUSTOMER_SSM_PATH_PREFIX}"
 log "Initial CUSTOMER_SSO_SSM_PATH_PREFIX: ${CUSTOMER_SSO_SSM_PATH_PREFIX}"
-log "Initial ORCH_API_SSM_PATH_PREFIX: ${ORCH_API_SSM_PATH_PREFIX}"
 log "Initial SERVICE_SSM_PATH_PREFIX: ${SERVICE_SSM_PATH_PREFIX}"
 log "Initial REGION: ${REGION}"
 log "Initial REGION_NICK_NAME: ${REGION_NICK_NAME}"
@@ -318,8 +318,8 @@ export BELUGA_ENV_NAME="${ENVIRONMENT#-}"
 export IS_MULTI_CLUSTER="${IS_MULTI_CLUSTER}"
 
 export PLATFORM_EVENT_QUEUE_NAME="${PLATFORM_EVENT_QUEUE_NAME:-v2_platform_event_queue.fifo}"
-export CUSTOMER_SSO_SSM_PATH_PREFIX="${CUSTOMER_SSO_SSM_PATH_PREFIX:-/pcpt/customer/sso}"
-export ORCH_API_SSM_PATH_PREFIX="${ORCH_API_SSM_PATH_PREFIX:-/pcpt/orch-api}"
+export CUSTOMER_SSM_PATH_PREFIX=${CUSTOMER_SSM_PATH_PREFIX:-/pcpt/customer}
+export CUSTOMER_SSO_SSM_PATH_PREFIX="${CUSTOMER_SSO_SSM_PATH_PREFIX:-${CUSTOMER_SSM_PATH_PREFIX}/sso}"
 export SERVICE_SSM_PATH_PREFIX="${SERVICE_SSM_PATH_PREFIX:-/${TENANT_NAME}/pcpt/service}"
 
 export REGION="${REGION:-us-east-2}"
@@ -385,8 +385,8 @@ log "Using ENVIRONMENT: ${BELUGA_ENV_NAME}"
 log "Using IS_MULTI_CLUSTER: ${IS_MULTI_CLUSTER}"
 log "Using TOPOLOGY_DESCRIPTOR_FILE: ${TOPOLOGY_DESCRIPTOR_FILE}"
 log "Using PLATFORM_EVENT_QUEUE_NAME: ${PLATFORM_EVENT_QUEUE_NAME}"
+log "Using CUSTOMER_SSM_PATH_PREFIX: ${CUSTOMER_SSM_PATH_PREFIX}"
 log "Using CUSTOMER_SSO_SSM_PATH_PREFIX: ${CUSTOMER_SSO_SSM_PATH_PREFIX}"
-log "Using ORCH_API_SSM_PATH_PREFIX: ${ORCH_API_SSM_PATH_PREFIX}"
 log "Using SERVICE_SSM_PATH_PREFIX: ${SERVICE_SSM_PATH_PREFIX}"
 log "Using REGION: ${REGION}"
 log "Using REGION_NICK_NAME: ${REGION_NICK_NAME}"
@@ -535,8 +535,8 @@ export MYSQL_PASSWORD=${MYSQL_PASSWORD}
 export MYSQL_DATABASE=${MYSQL_DATABASE}
 
 export PLATFORM_EVENT_QUEUE_NAME=${PLATFORM_EVENT_QUEUE_NAME}
+export CUSTOMER_SSM_PATH_PREFIX=${CUSTOMER_SSM_PATH_PREFIX}
 export CUSTOMER_SSO_SSM_PATH_PREFIX=${CUSTOMER_SSO_SSM_PATH_PREFIX}
-export ORCH_API_SSM_PATH_PREFIX=${ORCH_API_SSM_PATH_PREFIX}
 export SERVICE_SSM_PATH_PREFIX=${SERVICE_SSM_PATH_PREFIX}
 
 export PING_IDENTITY_DEVOPS_USER=${PING_IDENTITY_DEVOPS_USER}
