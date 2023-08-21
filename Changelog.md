@@ -36,6 +36,7 @@
 - Change PD alerts to see more specific errors
 - Update pd.profile to align with PingDirectory upgrade
 - Update cluster-autoscaler v1.27.0/1.27.1 for eks 1.27
+- Update nginx-ingress-controller to v1.8.0 to support EKS 1.27
 - Healthcheck pods respond properly to SIGTERM
 - Update PCB with new Radius Proxy Image
 - Unify severity format for all prometheus alerts
@@ -44,6 +45,10 @@
 - CloudWatch / New Relic: Disable logging for Dev clusters
 - Enabling weekend scheduled runs to different CDE types (dev/test/stage/prod/customer-hub)
 - Fix: opensearch-bootstrap job in a second region can't connect to OpenSearch
+- Update OpenSearch/OpenSearch Dashboards to v2.8.0
+- Update AWS EFS CSI Driver to v1.5.8
+- Improve Prometheus pods respond properly to SIGTERM
+
 
 _Changes:_
 
@@ -99,6 +104,7 @@ _Changes:_
 - [X] PDO-5655 OS: Logs for the pf-transaction-* index are not filtered
 - [X] PDO-5659 git-ops-command.sh responds properly to SIGTERM
 - [X] PDO-5660 Healthcheck pods respond properly to SIGTERM
+- [X] PDO-5662 prometheus pods respond properly to SIGTERM
 - [X] PDO-5671 OS: grokparsefailure in pingaccess logs
 - [x] PDO-5673 OS: Missed logs in PingAccess Indices
 - [X] PDO-5705 Update PCB with toolkit image used as replacement for bitnami/kubectl
@@ -106,6 +112,7 @@ _Changes:_
 - [X] PDO-5718 Update PGO dashboards to use grafana CRD
 - [X] PDO-5724 Limit backup/restore logging for PD
 - [X] PDO-5741 OS: Index migration fails for shrink-*-logstash-* indexes
+- [X] PDO-5781 Update nginx-ingress-controller to v1.8.0 to support EKS 1.27
 - [X] PDO-5762 CloudWatch / New Relic: Disable logging for Dev clusters
 - [X] PDO-5770 Update update-profile-repo script for MonoRepo
 - [X] PDO-5774 OS Index Policies: State Transitions Errors
@@ -114,6 +121,8 @@ _Changes:_
 - [X] PDO-5801 Update cluster-autoscaler v1.27.0/1.27.1 for eks 1.27
 - [X] PDO-5813 Remove excessive patches for the second region
 - [X] PDO-5835 Create PD init container for KMS
+- [X] PDO-5871 Update AWS EFS CSI Driver to v1.5.8
+- [X] PDO-5873 Update OpenSearch/OSD to v2.8.0
 - [X] PDO-5924 Multi-Region CDE: opensearch-bootstrap job in a second region can't connect to OpenSearch
 
 ### 1.18.0.0
